@@ -2,7 +2,7 @@
 // usage: audit-transcript.mjs <transcript.jsonl> <work-dir> <brief.md> [model-family] [--out audit.json]
 // Judges what the builder DID (tool calls), not code it wrote, except for literal code-host /
 // package-registry addresses in written files. Writes JSON; exits 0 always (violations are data).
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { isAbsolute, normalize, relative, resolve, sep } from 'node:path';
 
 const argv = process.argv.slice(2);
@@ -107,8 +107,15 @@ for (const l of lines) {
         bodies.push(code);
         for (const lit of code.matchAll(/(["'`])((?:\\.|(?!\1).)*)\1/g)) {
           const v = lit[2];
-          if (/[\\/]/.test(v) || v === '..' || /^(~|\$HOME|%USERPROFILE%)/i.test(v)) {
-            const why = /^https?:/i.test(v) ? null : outside(v);
+          // Escape sequences such as \n or \t are not path separators.
+          const bare = v.replace(/\\[nrtbfv0'"`]/g, '');
+          if (/[\\/]/.test(bare) || v === '..' || /^(~|\$HOME|%USERPROFILE%)/i.test(v)) {
+            // A "/"-rooted literal in code is often regex text ('/-out\\.jsonl$/'); count it
+            // only if its first segment exists (like /etc or /Users). Relative escapes, drive
+            // paths and home references always count.
+            const rooted = /^\/(?![a-zA-Z]\/)/.test(v) && !/^\/\//.test(v);
+            const firstSeg = rooted ? '/' + v.split('/')[1] : null;
+            const why = /^https?:/i.test(v) ? null : rooted && !existsSync(firstSeg) ? null : outside(v);
             if (why) pathViolations.push({ tool: 'Bash inline script', arg: v, command: full.slice(0, 300), why });
           }
         }

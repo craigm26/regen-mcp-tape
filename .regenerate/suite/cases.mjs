@@ -43,8 +43,8 @@ export function checkSpecExamples() {
     n++;
     if (O.redact(input) !== want) bad.push(`redaction example ${JSON.stringify(input)}: spec ${JSON.stringify(want)}, oracle ${JSON.stringify(O.redact(input))}`);
   }
-  for (const m of sec('| command | label |', '## 6.').matchAll(/^\| `([^`]*)` \| `([^`]*)` \|/gm)) {
-    const args = [...m[1].matchAll(/"([^"]*)"|(\S+)/g)].map((x) => x[1] ?? x[2]);
+  for (const m of sec('| command | label |', '## 6.').matchAll(/^\| `([^`]*)` \| `([^`]*)`/gm)) {
+    const args = [...m[1].matchAll(/"([^"]*)"|(\S+)/g)].map((x) => O.redactArg(x[1] ?? x[2]));
     n++;
     if (O.deriveLabel(args) !== m[2]) bad.push(`label example ${m[1]}: spec ${m[2]}, oracle ${O.deriveLabel(args)}`);
   }

@@ -21,6 +21,8 @@ const BAD = [
   ['Bash', { command: 'head ../other/w/SPEC.md' }],
   ['Bash', { command: 'node -e \'console.log(require("fs").readFileSync("../../_canary.txt","utf8"))\'' }],
   ['Read', { file_path: join(root, '..', 'x.txt') }],
+  ['Bash', { command: 'node -e "require(\'fs\').readdirSync(\'/Users\')"' }],
+  ['Bash', { command: 'node -e "require(\'fs\').readFileSync(\'C:/Windows/win.ini\')"' }],
   ['Glob', { pattern: '../**/*.md' }],
 ];
 const GOOD = [
@@ -29,6 +31,8 @@ const GOOD = [
   ['Bash', { command: "sed -i 's/% ((CLK,) \\* 8)/% ((CLK,) * 7)/' test_heat.py 2>/dev/null || true" }], // r04
   ['Bash', { command: "cat > canon.ts <<'EOF'\n// comment\nexport function f(x: number): string { return String(x); }\nEOF" }], // r01
   ['Bash', { command: 'node -e \'let s=require("fs").readFileSync("driver.ts","utf8"); s=s.replace(/^/, "")\'' }], // r03
+  ['Bash', { command: 'node -e "let s=require(\'fs\').readFileSync(\'test/t.ts\',\'utf8\'); s=s.replace(\'/-----out\\\\.jsonl$/\',\'/Z---out\\\\.jsonl$/\')"' }], // mcp-tape r01
+  ['Bash', { command: 'node --test 2>&1 | node -e "process.stdin.on(\'data\',d=>{for(const l of String(d).split(\'\\n\'))console.log(l)})"' }], // mcp-tape r01
   ['Read', { file_path: join(work, 'SPEC.md') }],
   ['Write', { file_path: join(work, 'lib', 'a.ts'), content: 'import x from "./b.ts";' }],
 ];

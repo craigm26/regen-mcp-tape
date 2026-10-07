@@ -1,7 +1,7 @@
 # tape: specification
 
 - Program: `tape`
-- Document version: 1.0.1
+- Document version: 1.0.2
 - Date: 2026-10-07
 
 `tape` is a transparent stdio proxy for Model Context Protocol (MCP) servers. A client starts
@@ -44,9 +44,11 @@ mapping to a command string. The suite picks the entry for its own platform, els
   appends the arguments of the `tape` invocation being tested. It MUST therefore be plain
   space-separated words: no quotes, pipes, redirects, `&&`, or `.cmd` shims such as `npx`.
   Examples: `node tape.ts`; `{"win32": "py -3 tape.py", "default": "python3 tape.py"}`.
-- The suite may start the driver from a working directory other than the implementation
-  folder, so the driver's program path MUST resolve relative to the implementation folder.
-  (The suite passes an absolute `--out` in every test; see REQ-TR-001 for the default.)
+- The suite starts the driver with a temporary folder as the working directory. Before
+  starting it, the suite replaces every driver word after the first that names an existing
+  file or folder inside the implementation folder (for example `tape.ts`) with that file's
+  absolute path. So write driver words as paths relative to the implementation folder; the
+  implementation does not need to do anything to resolve them.
 - Build output, if any, goes in `bin/`.
 - The same REGEN.json MUST work on Windows and on Linux.
 
@@ -243,6 +245,7 @@ Examples:
 | `npx -y srv https://example.test/mcp --header "X-Key: abc"` | `mcp` |
 | `node KEY=value` | `key-value` |
 | `npx -y --` | `mcp` |
+| `node srv.js ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA` | `-redacted-` (the argument is redacted to `[REDACTED]` first, and `[` and `]` become `-`) |
 
 ---
 
@@ -414,9 +417,13 @@ them.
   to standard error.
 - **OPEN-CLI-002.** Options other than those in REQ-CLI-001, unknown options beginning with a
   single `-`, and repeating `--out` or `--label`.
+- **OPEN-CLI-003.** Which wins when `--help` or `--version` appears together with a usage
+  error.
 - **OPEN-FW-001.** How `tape`'s own standard-error lines interleave with the child's.
 - **OPEN-FW-002.** Behavior when the client closes `tape`'s standard output early (a broken
-  pipe), and what `tape` does with input that arrives after the child exits.
+  pipe); what `tape` does with input that arrives after the child exits; and how long `tape`
+  waits when the child has exited but a process it started still holds the child's output
+  pipes open.
 - **OPEN-EX-001.** On Windows, how a forced termination of `tape` or the child is reported.
 - **OPEN-TR-001.** Extra members in trace lines (for example a producer version in the meta
   line).
@@ -424,14 +431,21 @@ them.
   values are monotonic across directions.
 - **OPEN-TR-003.** In `raw`: member order, whitespace, how numbers are written (as long as the
   value survives), integers beyond 2^53, and duplicate member names.
-- **OPEN-TR-004.** Lines that are not valid UTF-8; lines that are blank under some other
-  definition of white space (for example U+00A0).
+- **OPEN-TR-004.** Lines that are not valid UTF-8; lines that begin with a byte-order mark;
+  lines that are blank under some other definition of white space (for example U+00A0); and
+  messages that cannot be redacted or written because of an internal limit (for example
+  nesting deeper than the implementation can recurse).
 - **OPEN-TR-005.** When trace lines are flushed to disk while `tape` runs; what happens if a
   file of the same name already exists; how `<stamp>` relates to `startedAt` beyond both being
   the start time to within normal startup delay.
 - **OPEN-RD-001.** `--redact` patterns that use syntax beyond REQ-RD-004's list (lookaround,
-  backreferences, Unicode property escapes, flags) and how such patterns behave.
+  backreferences, Unicode property escapes, flags), patterns that can match the empty string,
+  and how such patterns behave.
 - **OPEN-PL-001.** Arguments with spaces, quotes or shell metacharacters passed to `.cmd` or
   `.bat` files on Windows.
-- **OPEN-LB-001.** The label when an argument's last path segment contains non-ASCII letters
-  (they become `-` in step 3, but how many `-` a multi-byte character becomes is open).
+- **OPEN-PL-002.** On Windows, how a command name that already has a directory part or an
+  extension is looked up, and how `.cmd`/`.bat` files are started (for example through the
+  command interpreter).
+- **OPEN-LB-001.** Non-ASCII characters in a derived label or in the file-name part: each
+  becomes `-`, but whether a character outside the Basic Multilingual Plane becomes one `-` or
+  two, and whether the 32- and 64-character limits count code points or UTF-16 units, is open.

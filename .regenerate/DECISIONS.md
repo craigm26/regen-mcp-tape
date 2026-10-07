@@ -190,3 +190,27 @@ extracted from, a TypeScript stdio proxy with the same trace format.
   others are open (OPEN-CLI-002).
 - Why: The core proxy is the part worth pinning first.
 - Alternatives: Include them (a much larger spec).
+
+## D-021: The suite resolves driver paths
+- Source: r01
+- Context: REQ-IF-001 said the driver's program path "MUST resolve relative to the
+  implementation folder" although the suite may start it elsewhere. A driver made of plain
+  words cannot do that by itself. The r01 builder wrote `node tape.ts` and noted it would only
+  work if the suite resolved the path (C-1).
+- Decision: REQ-IF-001 now says what the suite does: it turns driver words that name files in
+  the implementation folder into absolute paths before starting the driver.
+- Why: The requirement asked the builder for something only the suite can do.
+- Alternatives: Start the driver inside the implementation folder (then the default `--out`
+  would write into it).
+
+## D-022: More edges are open
+- Source: r01
+- Context: r01 made choices about `--help` alongside usage errors, non-ASCII characters in file
+  names, lines with a byte-order mark, messages it cannot redact for internal reasons, a
+  grandchild holding the child's pipes open, Windows lookup of names with a directory or
+  extension, and `--redact` patterns that match the empty string (C-3, C-5, C-7, C-8, C-10,
+  C-12, C-13).
+- Decision: OPEN-CLI-003, OPEN-PL-002, and wider OPEN-LB-001, OPEN-TR-004, OPEN-FW-002 and
+  OPEN-RD-001. REQ-LB-001 gains an example for a redacted argument (C-9).
+- Why: Nothing a normal client or server does depends on these.
+- Alternatives: Pin each one.
