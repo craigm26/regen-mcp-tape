@@ -1,7 +1,7 @@
 # tape: specification
 
 - Program: `tape`
-- Document version: 1.0.0
+- Document version: 1.0.1
 - Date: 2026-10-07
 
 `tape` is a transparent stdio proxy for Model Context Protocol (MCP) servers. A client starts
@@ -320,7 +320,7 @@ Examples (each string as it appears after step 2):
 | `Authorization: Bearer abc.def` | `[REDACTED]` |
 | `Authorization: x` + CR + LF + `next` | `[REDACTED]` + CR + LF + `next` |
 | `postgres://admin:hunter2@db:5432/x` | `postgres://admin:[REDACTED]@db:5432/x` |
-| `load /home/u/.env.local now` | `load [REDACTED] now` |
+| `load /srv/app/.env.local now` | `load [REDACTED] now` |
 | `key is ~/.ssh/id_ed25519.pub` | `key is [REDACTED]` |
 | `café AKIAIOSFODNN7EXAMPLE` | `café [REDACTED]` |
 | `éAKIAIOSFODNN7EXAMPLE` | `é[REDACTED]` (é is not a word character, so `\b` holds) |

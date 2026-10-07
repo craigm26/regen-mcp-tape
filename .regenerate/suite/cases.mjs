@@ -319,7 +319,7 @@ export function buildCases() {
         a: 'try AKIAIOSFODNN7EXAMPLE today', b: 'k=sk-' + 'Z'.repeat(30) + ' end', c: 'gh token gho_' + '9'.repeat(40),
         d: 'jwt eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2ln here', e: 'Authorization: Basic Zm9vOmJhcg== trailing',
         f: 'use Bearer abc.DEF-ghi/+= now', g: 'slack xoxb-1234567890-abc', h: 'stripe rk_live_ABCDEFGH12', i: 'postgres://admin:hunter2@db:5432/x and https://u:p@h',
-        k: 'load /home/u/.env.local now', l: 'key ~/.ssh/id_ed25519.pub here', m: ['nested AKIAIOSFODNN7EXAMPLE'], n: 123,
+        k: 'load /srv/app/.env.local now', l: 'key ~/.ssh/id_ed25519.pub here', m: ['nested AKIAIOSFODNN7EXAMPLE'], n: 123,
       } },
     }]);
     r('rd-string-pattern-meanings', ['REQ-RD-002'], [{
