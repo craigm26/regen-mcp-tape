@@ -1,0 +1,7 @@
+{
+  "_comment": "Copied from kit/briefs/mcp-tape.md § Leak check and audit. Identifiers always fail (case-insensitive). Symbols fail (case-sensitive) unless allowlisted.",
+  "identifiers": ["mcp-tape", "mcp_tape", "mcp-replay", "mcpreplay", "mcpTapVersion", "MCP_TAPE", "PlatAtlas", "platatlas", "craigm26"],
+  "symbols": ["TraceWriter", "pipeWithLog", "deriveLabel", "RotatingWriter", "redactWithConfig"],
+  "allow": [],
+  "allowedDomains": []
+}

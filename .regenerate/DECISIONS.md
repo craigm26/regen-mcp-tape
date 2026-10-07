@@ -1,0 +1,192 @@
+# Decisions
+
+Why SPEC.md says what it says. "The earlier implementation" means the program this spec was
+extracted from, a TypeScript stdio proxy with the same trace format.
+
+## D-001: Forwarded bytes are never touched
+- Source: extraction
+- Context: The earlier implementation wrote each chunk it read straight to the other side
+  before looking at it, and kept redaction to the trace.
+- Decision: REQ-FW-001, REQ-FW-002: byte-for-byte forwarding in both directions, whatever the
+  bytes are, and nothing else on standard output.
+- Why: A proxy that changes protocol bytes, or adds output, breaks the client.
+- Alternatives: none.
+
+## D-002: End of input reaches the child
+- Source: extraction, primary source
+- Context: The earlier implementation never closed the child's standard input when its own
+  standard input ended. MCP's stdio shutdown begins with the client closing the server's
+  input; a server that waits for that end of file (as many do) therefore never exits behind
+  the earlier implementation, and the client has to kill the proxy.
+- Decision: REQ-FW-004.
+- Why: The proxy should be invisible to the shutdown sequence.
+- Alternatives: Keep the earlier behavior (breaks clean shutdown).
+
+## D-003: The proxy exits when the child exits
+- Source: extraction
+- Context: After the child exited, the earlier implementation also waited for its own
+  standard input to end before exiting. A client that keeps the pipe open while waiting for
+  the server to go away would wait forever.
+- Decision: REQ-FW-005.
+- Why: The child's exit is the end of the session.
+- Alternatives: Wait for the client (the earlier behavior).
+
+## D-004: A final line without LF is still logged
+- Source: extraction
+- Context: The earlier implementation forwarded the bytes after the last LF at end of file but
+  never logged them.
+- Decision: REQ-TR-008.
+- Why: The trace should record what passed through. MCP requires LF-terminated messages, so
+  this only matters for a misbehaving peer, which is when a trace is most useful.
+- Alternatives: Leave it unlogged (and open).
+
+## D-005: Lines are decoded whole
+- Source: extraction
+- Context: The earlier implementation decoded each read as UTF-8 on its own, so a multi-byte
+  character split across two reads was logged as two replacement characters, while the
+  forwarded bytes stayed correct.
+- Decision: REQ-TR-007 step 1.
+- Why: The trace would otherwise disagree with the wire for perfectly valid traffic.
+- Alternatives: none reasonable.
+
+## D-006: Any JSON line is a message; a batch is one message
+- Source: extraction
+- Context: The earlier implementation logged any line that parsed as JSON, including numbers,
+  strings, `null` and arrays. A JSON-RPC batch is an array and was logged as one line.
+- Decision: REQ-TR-007 steps 3 and 4.
+- Why: Simple and lossless; consumers decide what is JSON-RPC.
+- Alternatives: Log only objects (drops malformed traffic from the record).
+
+## D-007: Redaction keeps the earlier implementation's rules exactly, quirks included
+- Source: extraction
+- Context: The earlier implementation redacted in two stages: a rule file (exact-key rules
+  plus string patterns), then an older built-in pass (key substrings plus four of the same
+  string patterns again, plus user patterns). The key-substring pass leaves numbers alone
+  (`max_tokens: 100` survives) but redacts any string, object or array under a key containing
+  `token` (so MCP's `progressToken` is redacted). The exact-key pass replaces any value type.
+- Decision: § 6 restates both stages as four steps, in the same order, with the same lists.
+- Why: Traces made by this program and the earlier one should redact the same things. The
+  quirks are visible but harmless: they err toward hiding.
+- Alternatives: A cleaner single pass (different traces for the same traffic).
+
+## D-008: Regular-expression meanings are pinned
+- Source: extraction
+- Context: The patterns were written for JavaScript. Other engines differ: Python's `\b` and
+  `\s` are Unicode-aware by default, and Python's `.` matches CR and U+2028, which JavaScript's
+  does not. `Authorization: x` followed by CRLF redacts only up to the CR in JavaScript.
+- Decision: REQ-RD-002 pins `\b` (ASCII), `\s` (the ECMAScript set) and `.`.
+- Why: Two implementations must redact the same text.
+- Alternatives: Let each language use its own defaults (different traces).
+
+## D-009: Pattern 9 is restated without lookbehind
+- Source: extraction
+- Context: The connection-string pattern uses a variable-length lookbehind, which some engines
+  (including Python's standard `re`) do not support.
+- Decision: REQ-RD-002 describes pattern 9 in words.
+- Why: The behavior, not the regex, is the contract.
+- Alternatives: none.
+
+## D-010: Redaction must run in linear time
+- Source: extraction
+- Context: Patterns 10 and 11 begin with `[^\s"]*`. A backtracking engine evaluates them in
+  time proportional to the square of the length of a run of non-space characters. Measured
+  with the JavaScript engine: 1 s for a 40,000-character word, so tens of minutes for a 2 MB
+  base64 blob, which MCP servers do send (images, resources). The earlier implementation
+  evaluated them directly, on the same thread that forwards bytes.
+- Decision: REQ-RD-002 gives exact word-based equivalents of patterns 10 and 11 (checked
+  against the regexes on random inputs), and REQ-RD-006 requires a 2 MB blob to go through
+  within the suite's time limit.
+- Why: A proxy must not stall on large messages.
+- Alternatives: Drop the two patterns (weaker redaction).
+
+## D-011: The command line is redacted, and the label comes from the redacted command
+- Source: extraction, primary source
+- Context: The trace format says producers should redact command-line arguments the way they
+  redact messages. The earlier implementation wrote `meta.command` verbatim; its label
+  derivation skipped arguments containing white space, but a token passed as a single argument
+  could still end up in the label and so in the file name.
+- Decision: REQ-RD-005 and REQ-LB-001: string rules on each argument; label derived after.
+- Why: The file name is the least protected place a secret can land.
+- Alternatives: Leave the command verbatim (the earlier behavior).
+
+## D-012: Labels split on `\` as well as `/`
+- Source: extraction
+- Context: The earlier implementation took the part after the last `/`, so on Windows
+  `C:\srv\files.mjs` became `c--srv-files-mjs`.
+- Decision: REQ-LB-001 step 3 splits on both.
+- Why: Windows paths should label the same way as POSIX ones.
+- Alternatives: Keep `/` only.
+
+## D-013: Signal exits use the real signal number
+- Source: extraction
+- Context: The earlier implementation mapped five signal names to numbers and wrote 128 + 0 for
+  any other signal (so SIGUSR1 gave 128).
+- Decision: REQ-EX-002: 128 + the platform's number.
+- Why: That is the shell convention, and clients that inspect exit codes rely on it.
+- Alternatives: Keep the table.
+
+## D-014: A command that cannot start exits 127 and still leaves a trace
+- Source: extraction
+- Context: On POSIX the earlier implementation crashed (status 1) when the command was not
+  found, before writing the end line. On Windows it started commands through the shell, which
+  printed an error and returned 1.
+- Decision: REQ-EX-004: status 127, as shells do, and a complete trace with `exitCode` 127.
+- Why: A predictable status, and a record that the attempt happened.
+- Alternatives: Status 1, no trace.
+
+## D-015: Usage errors are status 2, including a bad `--redact` pattern
+- Source: extraction
+- Context: The earlier implementation used status 2 for argument errors, but compiled
+  `--redact` patterns only after creating the output directory, so an invalid pattern crashed
+  with status 1.
+- Decision: REQ-CLI-004.
+- Why: An invalid pattern is a usage error, and nothing should be created.
+- Alternatives: Status 1.
+
+## D-016: The trace format is restated, without a producer-version member
+- Source: extraction
+- Context: The trace format allows an optional member naming the producing program's version.
+- Decision: REQ-TR-003 to REQ-TR-006 restate the three line types; extra members are open
+  (OPEN-TR-001), so neither including nor omitting such a member is wrong.
+- Why: This program is not the earlier one and should not claim its name.
+- Alternatives: Forbid extra members.
+
+## D-017: Windows command lookup and arguments
+- Source: extraction
+- Context: The earlier implementation started the child through the Windows shell so that
+  `.cmd` shims such as `npx` would resolve. Going through the shell also re-splits arguments
+  that contain spaces and drops empty ones.
+- Decision: REQ-PL-001 (PATH and PATHEXT lookup, `.cmd`/`.bat` run) and REQ-PL-002 (arguments
+  exact for programs); arguments to `.cmd`/`.bat` with special characters are open
+  (OPEN-PL-001), because the Windows command interpreter has its own quoting rules.
+- Why: `npx`-style commands are the common case on Windows; exact arguments are what a proxy
+  owes its child.
+- Alternatives: Always use the shell (breaks arguments); never use it (breaks `npx`).
+
+## D-018: A command may follow the options without `--`
+- Source: extraction
+- Context: The earlier implementation treated the first non-option argument as the start of
+  the command, because some Windows shells drop a literal `--` before passing arguments on.
+- Decision: REQ-CLI-002.
+- Why: Compatibility with how the program is actually invoked.
+- Alternatives: Require `--`.
+
+## D-019: What is compared exactly
+- Source: extraction
+- Context: Timestamps depend on the clock; the order in which the two directions are read
+  depends on scheduling; JSON numbers can be written several ways.
+- Decision: Pinned: forwarded bytes, order within one direction, `raw` as a JSON value with
+  binary64 numbers (REQ-TR-009, REQ-TR-010), exit status, file name shape. Open: timestamps
+  beyond their format, cross-direction interleaving, number spelling (OPEN-TR-002,
+  OPEN-TR-003).
+- Why: Pin what a consumer can rely on; leave what no two runs could reproduce.
+- Alternatives: Compare whole trace files (impossible across runs).
+
+## D-020: Configuration files, environment variables and the earlier extras are out of scope
+- Source: extraction
+- Context: The earlier implementation also read a per-user redaction file and several
+  environment variables, rotated large traces, streamed over a websocket and uploaded traces.
+- Decision: None of that is in this spec. The options are exactly those in REQ-CLI-001;
+  others are open (OPEN-CLI-002).
+- Why: The core proxy is the part worth pinning first.
+- Alternatives: Include them (a much larger spec).
