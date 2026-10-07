@@ -8,6 +8,8 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 |---|---|---|---|---|---|---|---|---|---|
 | r00 | reference | spec-v1.0.0 | — | earlier TS implementation via adapter | finished | 45/65 (7 skipped, 4 n/a) | — | — | all 20 failures are corrections (below) |
 | r00.1 | reference | spec-v1.0.1 | — | earlier TS implementation | finished | 45/65 (7 skipped, 4 n/a) | — | — | same 20 failures; spec-v1.0.0 failed the leak check and was never built from |
+| r01 | blind | spec-v1.0.1 | claude-sonnet-5-5 | ts | finished | 69/69 (7 skipped, Windows) | 26/26 | no | C-1 clarify: driver-path requirement was impossible for the builder; 22 turns, 4.5 min, $0.57 |
+| r00.2 | reference | spec-v1.0.2 | — | earlier TS implementation | finished | 45/65 (7 skipped, 4 n/a) | — | — | same 20 failures |
 
 ## r00: the suite against the earlier implementation
 
@@ -52,3 +54,4 @@ Suite bugs found while building r00 (class (a), fixed before the run was recorde
   use were found by running, not reading: the earlier implementation hangs at the end of a
   normal MCP session, and it stalls on large base64 payloads. The redaction rules, the part
   that looked hardest to restate, came out identical.
+- **r01.** The first blind TypeScript build passed every case on Windows, including all the ones the earlier implementation hung or stalled on. Its one real finding was wording: REQ-IF-001 asked the builder to make a relative path resolve, which only the suite can do. The POSIX signal half of the spec is still unexercised.
