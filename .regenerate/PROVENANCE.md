@@ -7,6 +7,7 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | Run | Kind | Spec tag | Model | Lang | Outcome | Suite | Own tests | Clean | Notes |
 |---|---|---|---|---|---|---|---|---|---|
 | r00 | reference | spec-v1.0.0 | — | earlier TS implementation via adapter | finished | 45/65 (7 skipped, 4 n/a) | — | — | all 20 failures are corrections (below) |
+| r00.1 | reference | spec-v1.0.1 | — | earlier TS implementation | finished | 45/65 (7 skipped, 4 n/a) | — | — | same 20 failures; spec-v1.0.0 failed the leak check and was never built from |
 
 ## r00: the suite against the earlier implementation
 
