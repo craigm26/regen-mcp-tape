@@ -1,4 +1,5 @@
 name: ci
+# Runs on every push to main, and by hand (workflow_dispatch).
 on:
   push:
     branches: [main]
