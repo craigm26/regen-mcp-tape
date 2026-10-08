@@ -20,7 +20,9 @@
   any ref; the AKIA and ghp_ strings are the spec's example values).
 - CI: run 37736719682 on main (11c7032): purity ok, auditor 24/24; ts on ubuntu 29/29 and 76/76,
   on windows 27/27 (2 skipped) and 70/70. Every run up to then was started by hand: pushes to main
-  did not start the workflow. On 2026-10-08 it was disabled and re-enabled to reset its triggers.
+  did not start `.github/workflows/ci.yml`, though the same file runs on push in the other regen
+  repos and the Actions settings match. Disabling and re-enabling it did not help; moving it to
+  `regen-ci.yml` (5383bce) did: run 37827221533 started on that push and passed.
 - Upstream: the fixes went to the earlier project on 2026-10-08 (UTC) as craigm26/mcp-tape#2
   (open, not merged). At b07b9f3 it passes this suite 67/67 on Windows (laptop) and 73/73 on
   Linux (ledger upstream.1, upstream.1.linux; PROVENANCE).
