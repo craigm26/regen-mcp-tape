@@ -70,6 +70,23 @@ const INIT = [
   [[{ type: 'assistant', message: { content: [{ type: 'text', text: 'hi' }] } }], false],
 ];
 for (const [prefix, want] of INIT) if (initOk(prefix) !== want) { failures++; console.log(`INIT    ${JSON.stringify(prefix)} -> expected ok=${want}`); }
-const total = BAD.length + GOOD.length + INIT.length;
+// A resumed turn after the result line (r04): a second, identical init is fine and the result
+// lines add up; a second init with other tools is not.
+function resumed(second) {
+  const say = { type: 'assistant', message: { content: [{ type: 'text', text: 'done' }] } };
+  const lines = [init, say, { type: 'result', num_turns: 18, duration_ms: 1000, total_cost_usd: 0.5, permission_denials: [{ tool_name: 'Bash', tool_input: { command: 'pkill x' } }] },
+    { type: 'system', subtype: 'task_notification' }, second, say, { type: 'result', num_turns: 1, duration_ms: 10, total_cost_usd: 0.6, permission_denials: [] }];
+  const t = join(root, `r${Math.random().toString(36).slice(2)}.jsonl`);
+  writeFileSync(t, lines.map((l) => JSON.stringify(l)).join('\n') + '\n');
+  const out = join(root, 'r.json');
+  execFileSync(process.execPath, [join(import.meta.dirname, 'audit-transcript.mjs'), t, work, brief, 'sonnet', '--out', out]);
+  return JSON.parse(readFileSync(out, 'utf8'));
+}
+const RESUMED = [
+  [init, (a) => a.init.ok && a.result.num_turns === 19 && a.result.total_cost_usd === 0.6 && a.denied_calls === 1],
+  [{ ...init, tools: [...init.tools, 'WebFetch'] }, (a) => !a.init.ok],
+];
+for (const [second, ok] of RESUMED) if (!ok(resumed(second))) { failures++; console.log(`RESUMED ${JSON.stringify(second.tools)} -> unexpected audit`); }
+const total = BAD.length + GOOD.length + INIT.length + RESUMED.length;
 console.log(`audit self-test: ${total - failures}/${total} ok`);
 process.exit(failures ? 1 : 0);

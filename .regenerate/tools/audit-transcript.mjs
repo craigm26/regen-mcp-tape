@@ -42,10 +42,18 @@ if (init.permissionMode !== 'dontAsk') initProblems.push(`permissionMode ${init.
 if (!new RegExp(`^claude-${family}-`).test(init.model ?? '')) initProblems.push(`model ${init.model} is not a resolved ${family} id`);
 // The CLI may write bookkeeping lines (active_goal, autocompact_state, ui_invalidate) before
 // init. What matters: exactly one init line, and no assistant or tool event before it.
+// A transcript can hold more than one init line: when a background command the builder started
+// ends after the result line, the CLI resumes the same session for one more turn and writes init
+// again (r04). Every later init must show the same isolated configuration as the first.
 const firstActor = lines.findIndex((l) => l.type === 'assistant' || l.type === 'user');
 if (!init.type) initProblems.push('no init line');
-else if (lines.filter((l) => l.type === 'system' && l.subtype === 'init').length !== 1) initProblems.push('more than one init line');
 else if (firstActor >= 0 && firstActor < lines.indexOf(init)) initProblems.push('an assistant or tool event precedes init');
+for (const extra of lines.filter((l) => l.type === 'system' && l.subtype === 'init' && l !== init)) {
+  for (const k of ['cwd', 'model', 'permissionMode', 'session_id'])
+    if (JSON.stringify(extra[k]) !== JSON.stringify(init[k])) initProblems.push(`a later init line differs in ${k}`);
+  if ([...(extra.tools ?? [])].sort().join(',') !== tools) initProblems.push('a later init line has other tools');
+  if ((extra.mcp_servers ?? []).length) initProblems.push('a later init line has MCP servers');
+}
 
 // ---------- walk tool calls
 const pathViolations = [], netViolations = [], codeHostHits = [], pipedCommands = [];
@@ -147,9 +155,14 @@ for (const l of lines) {
 for (const h of codeHostHits) netViolations.push({ ...h, rule: 'code-host address in written code' });
 
 // ---------- (c) denied calls
-const result = [...lines].reverse().find((l) => l.type === 'result') ?? null;
+// With more than one result line (see init above), turns, durations and denials add up;
+// total_cost_usd is already cumulative, so the last line's value is the run's cost.
+const results = lines.filter((l) => l.type === 'result');
+const result = results.at(-1) ?? null;
+const denials = results.flatMap((r) => r.permission_denials ?? []);
 // A run with no result line (killed or orphaned) still has its permission_denied events.
-const denied = result ? (result.permission_denials?.length ?? 0) : lines.filter((l) => l.type === 'system' && l.subtype === 'permission_denied').length;
+const denied = result ? denials.length : lines.filter((l) => l.type === 'system' && l.subtype === 'permission_denied').length;
+const sum = (k) => results.reduce((n, r) => n + (typeof r[k] === 'number' ? r[k] : 0), 0);
 
 const report = {
   transcript: transcriptPath,
@@ -158,13 +171,13 @@ const report = {
   path_violations: pathViolations,
   network_violations: netViolations,
   denied_calls: denied,
-  denied_detail: (result?.permission_denials ?? []).map((d) => ({ tool: d.tool_name, input: JSON.stringify(d.tool_input).slice(0, 200) })),
+  denied_detail: denials.map((d) => ({ tool: d.tool_name, input: JSON.stringify(d.tool_input ?? {}).slice(0, 200) })),
   identifiers_checked: identifiers,
   piped_commands: pipedCommands,
   recognition_before_spec: [...new Set(recognition)],
   recognized_reference: recognition.length > 0,
   violations: pathViolations.length + netViolations.length + (initProblems.length ? 1 : 0),
-  result: result ? { subtype: result.subtype, num_turns: result.num_turns, duration_ms: result.duration_ms, total_cost_usd: result.total_cost_usd ?? null, is_error: result.is_error } : null,
+  result: result ? { subtype: result.subtype, num_turns: sum('num_turns'), duration_ms: sum('duration_ms'), total_cost_usd: result.total_cost_usd ?? null, is_error: results.some((r) => r.is_error), result_lines: results.length } : null,
 };
 const text = JSON.stringify(report, null, 1);
 if (outPath) writeFileSync(outPath, text);
