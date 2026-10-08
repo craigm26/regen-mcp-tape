@@ -12,6 +12,7 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r00.2 | reference | spec-v1.0.2 | — | earlier TS implementation | finished | 45/65 (7 skipped, 4 n/a) | — | — | same 20 failures |
 | r02 | blind | spec-v1.0.2 | claude-sonnet-5-5 | ts | finished | 69/69 (7 skipped, Windows) | 28/28 | no | C-5 pin: `--redact` flags and anchors unstated; C-14 clarify: REQ-RD-006 promised more than it tested; 25 turns, 5.7 min, $0.70 |
 | r00.3 | reference | spec-v1.1.0 | — | earlier TS implementation | finished | 46/66 (7 skipped, 4 n/a) | — | — | same 20 failures; the new `--redact` case passes |
+| r03 | blind | spec-v1.1.0 | claude-sonnet-5-5 | ts | finished | 76/76 (1 skipped, Linux); 70/70 on Windows | 29/29 | **yes** | first clean run; first on the cloud host; 18 turns, 4.1 min, $0.63 |
 
 ## r00: the suite against the earlier implementation
 
@@ -68,3 +69,4 @@ implementation has still only been run on Windows, so its behavior on those 7 ca
   that looked hardest to restate, came out identical.
 - **r01.** The first blind TypeScript build passed every case on Windows, including all the ones the earlier implementation hung or stalled on. Its one real finding was wording: REQ-IF-001 asked the builder to make a relative path resolve, which only the suite can do. The POSIX signal half of the spec is still unexercised.
 - **r02.** A second TypeScript build, laid out differently (three modules, its own fake server), passed every case on Windows again. Its findings were about regular expressions, the part of the spec most exposed to a second language: `^` and `$` were allowed in `--redact` patterns but their meaning was never stated, and a sentence promising linear time for every input was broader than anything the suite checks or the default patterns deliver. It also found that `--redact` can match inside an earlier `[REDACTED]`, where the earlier implementation is itself inconsistent; that became an open item.
+- **r03.** The first clean run, on the third version of the spec and the first Linux host. Every choice it recorded was required by the text or already left open, most of those open items written because r01 or r02 asked. Its notes independently found the same thing the Linux rescore had just found in the suite: a Node.js child starts its debugger on SIGUSR1 instead of dying. On the laptop's Windows its suite result was 70/70; its own stderr test failed there only because a stray `package.json` in the user folder makes Node print a warning, which the spec allows.
