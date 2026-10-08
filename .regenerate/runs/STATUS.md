@@ -5,10 +5,11 @@
   Anthropic cloud container (Linux) carries on from this record (WORKSPACE <WORKSPACE>,
   SANDBOX_ROOT <SANDBOX_ROOT>). The earlier implementation stays built on the laptop, so
   reference runs (r00.k) are still made there, on Windows.
-- Phase: 5 (fix the spec from r02)
-- Spec tag: spec-v1.0.2
-- Last runs: r02 ts 69/69 on Windows (7 POSIX skipped), not clean (C-5 pin, C-14 clarify)
+- Phase: 3 (blind rebuild, primary language ts)
+- Spec tag: spec-v1.1.0
+- Last runs: r00.3 reference 46/66 on Windows (same 20 explained failures); r01 and r02
+  rescored 76/76 on Linux (first run of the POSIX-only cases; one suite bug fixed)
 - Blind runs used: 2 of 6
 - Running processes: none
 - Open question for Craig: run the 7 POSIX-only cases against the reference under WSL?
-- Next step: spec 1.1.0 from r02, r00.3 on the laptop, then r03 (ts) in the cloud.
+- Next step: r03 - ts, sonnet, spec-v1.1.0, in the cloud.

@@ -11,6 +11,7 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r01 | blind | spec-v1.0.1 | claude-sonnet-5-5 | ts | finished | 69/69 (7 skipped, Windows) | 26/26 | no | C-1 clarify: driver-path requirement was impossible for the builder; 22 turns, 4.5 min, $0.57 |
 | r00.2 | reference | spec-v1.0.2 | — | earlier TS implementation | finished | 45/65 (7 skipped, 4 n/a) | — | — | same 20 failures |
 | r02 | blind | spec-v1.0.2 | claude-sonnet-5-5 | ts | finished | 69/69 (7 skipped, Windows) | 28/28 | no | C-5 pin: `--redact` flags and anchors unstated; C-14 clarify: REQ-RD-006 promised more than it tested; 25 turns, 5.7 min, $0.70 |
+| r00.3 | reference | spec-v1.1.0 | — | earlier TS implementation | finished | 46/66 (7 skipped, 4 n/a) | — | — | same 20 failures; the new `--redact` case passes |
 
 ## r00: the suite against the earlier implementation
 
@@ -48,6 +49,16 @@ Suite bugs found while building r00 (class (a), fixed before the run was recorde
 3. Every case derived its label from the temporary config path, so on Windows one label
    difference (D-012) failed 31 unrelated cases. Cases now pass `--label` unless they are
    about labels.
+
+## The first Linux run (after r02)
+
+r01 and r02 were built and scored on Windows, where the 7 POSIX-only cases are skipped. When the
+work moved to a Linux host, both builds were rescored against `spec-v1.1.0`'s suite, and one
+case failed because of the suite (class (a)): `exit-child-signal-SIGUSR1` had the fake server
+send itself SIGUSR1, and a Node.js process starts its debugger on SIGUSR1 instead of dying. The
+case now uses SIGUSR2 (12 on Linux). With that fixed, both builds pass all 76 cases that run on
+Linux, including the signal cases, which no run had exercised before. The earlier
+implementation has still only been run on Windows, so its behavior on those 7 cases is unknown.
 
 ## What each run taught
 
