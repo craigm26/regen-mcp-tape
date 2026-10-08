@@ -16,6 +16,7 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r04 | blind | spec-v1.1.0 | claude-sonnet-5-5 | py | finished | 76/76 (1 skipped, Linux); 70/70 on Windows | 19/19 Linux; 16/19 Windows | no | its own tests fail on Windows (clarify, D-026); 19 turns, 5.8 min, $0.65 |
 | r00.4 | reference | spec-v1.1.1 | — | earlier TS implementation | finished | 46/67 (7 skipped, 4 n/a) | — | — | the 20 explained failures plus `fw-proto-member` (D-025) |
 | r05 | blind | spec-v1.1.1 | claude-sonnet-5-5 | py | finished | 77/77 (1 skipped, Linux); 71/71 on Windows | 39/39 Linux; 38/39 Windows | no | one own test expects LF on Windows (clarify, D-028); 10 turns, 4.5 min, $0.68 |
+| r00.5 | reference | spec-v1.1.2 | — | earlier TS implementation | finished | 46/67 (7 skipped, 4 n/a) | — | — | suite unchanged from 1.1.1; same 21 failures |
 
 ## r00: the suite against the earlier implementation
 
