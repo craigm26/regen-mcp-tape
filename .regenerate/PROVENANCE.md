@@ -10,6 +10,7 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r00.1 | reference | spec-v1.0.1 | — | earlier TS implementation | finished | 45/65 (7 skipped, 4 n/a) | — | — | same 20 failures; spec-v1.0.0 failed the leak check and was never built from |
 | r01 | blind | spec-v1.0.1 | claude-sonnet-5-5 | ts | finished | 69/69 (7 skipped, Windows) | 26/26 | no | C-1 clarify: driver-path requirement was impossible for the builder; 22 turns, 4.5 min, $0.57 |
 | r00.2 | reference | spec-v1.0.2 | — | earlier TS implementation | finished | 45/65 (7 skipped, 4 n/a) | — | — | same 20 failures |
+| r02 | blind | spec-v1.0.2 | claude-sonnet-5-5 | ts | finished | 69/69 (7 skipped, Windows) | 28/28 | no | C-5 pin: `--redact` flags and anchors unstated; C-14 clarify: REQ-RD-006 promised more than it tested; 25 turns, 5.7 min, $0.70 |
 
 ## r00: the suite against the earlier implementation
 
@@ -55,3 +56,4 @@ Suite bugs found while building r00 (class (a), fixed before the run was recorde
   normal MCP session, and it stalls on large base64 payloads. The redaction rules, the part
   that looked hardest to restate, came out identical.
 - **r01.** The first blind TypeScript build passed every case on Windows, including all the ones the earlier implementation hung or stalled on. Its one real finding was wording: REQ-IF-001 asked the builder to make a relative path resolve, which only the suite can do. The POSIX signal half of the spec is still unexercised.
+- **r02.** A second TypeScript build, laid out differently (three modules, its own fake server), passed every case on Windows again. Its findings were about regular expressions, the part of the spec most exposed to a second language: `^` and `$` were allowed in `--redact` patterns but their meaning was never stated, and a sentence promising linear time for every input was broader than anything the suite checks or the default patterns deliver. It also found that `--redact` can match inside an earlier `[REDACTED]`, where the earlier implementation is itself inconsistent; that became an open item.
