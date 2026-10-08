@@ -19,6 +19,11 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r00.5 | reference | spec-v1.1.2 | — | earlier TS implementation | finished | 46/67 (7 skipped, 4 n/a) | — | — | suite unchanged from 1.1.1; same 21 failures |
 | r06 | blind | spec-v1.1.2 | claude-sonnet-5-5 | py | finished | 75/77 (1 skipped, Linux); 69/71 on Windows | 33/33 Linux; 33/33 Windows | no | 2 silent divergences (wrong): already-forwarded client messages not logged when the child exits first; 13 turns, 4.1 min, $0.63 |
 
+Released: `impl/ts` from r03 at `spec-v1.1.0`. Python is not released: all six runs were used and
+none of the three Python builds (r04 to r06) was clean. `main` carries `spec-v1.1.2`, with REQ-IF-001
+on builder tests across platforms, five more open items and a `__proto__` case; the released tree
+passes its suite (77/77 on Linux, rescore at `spec-v1.1.1`, whose suite is the same).
+
 ## r00: the suite against the earlier implementation
 
 Ran 2026-10-07 on Windows, Node v22.20.0, against the earlier implementation at `793eb85`
