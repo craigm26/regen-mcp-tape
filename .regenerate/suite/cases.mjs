@@ -227,7 +227,9 @@ export function buildCases() {
   for (const code of [0, 1, 42, 255]) {
     session(`exit-code-${code}`, ['REQ-EX-001', 'REQ-TR-005'], req(1, 'ping') + '\n', { server: { exitCode: code } });
   }
-  for (const [sig, num] of [['SIGTERM', 15], ['SIGKILL', 9], ['SIGUSR1', 10], ['SIGHUP', 1]]) {
+  // Not SIGUSR1: a Node.js process starts its debugger on SIGUSR1 instead of dying, so the fake
+  // server cannot end by it (found on the first Linux run, after r02).
+  for (const [sig, num] of [['SIGTERM', 15], ['SIGKILL', 9], ['SIGUSR2', 12], ['SIGHUP', 1]]) {
     add({
       id: `exit-child-signal-${sig}`, reqs: ['REQ-EX-002', 'REQ-TR-005'], platform: 'posix', linuxNumbers: true,
       stdin: [{ text: exitReq + '\n' }], server: { respond: true, exitSignal: sig },
