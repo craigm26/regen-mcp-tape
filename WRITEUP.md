@@ -86,6 +86,8 @@ server through the shell re-split arguments and expanded `%PATH%`, a missing com
 rather than 127, and Windows paths turned into labels like `c--srv-files-mjs`; an invalid
 `--redact` pattern crashed with status 1 after the output folder was created. After r03, one
 more: it drops message members named `__proto__`, because it rebuilds objects by assignment.
+Run later on Linux, it passed six of the seven POSIX-only signal cases; the seventh is its
+five-entry signal table, which reports SIGUSR2 as 128 rather than 140.
 
 What it got right was the part that looked hardest to restate. All ten cases on the redaction
 rules passed (the two it failed were about speed): the four-step restatement reproduces its
@@ -149,17 +151,15 @@ laptop, triage and these documents) took much longer, and their cost is not in t
 | P1 | `.regenerate/` is the asset; `impl/` is output | Layout; README |
 | P2 | Every file under `impl/` came from a logged blind run | `purity-check.mjs`: `impl/ts` equals r03's promoted tree |
 | P3 | The suite judges from outside, in any language | Driver and pipes only; judged TypeScript and Python builds and the earlier implementation |
-| P4 | The suite ran against the reference first; every failure explained | r00 to r00.5: 20, then 21 failures, each mapped to a decision |
+| P4 | The suite ran against the reference first; every failure explained | r00 to r00.5 on Windows (20, then 21 failures) and r00.5.linux (20), each mapped to a decision |
 | P5 | Builders saw only SPEC, DECISIONS and PROMPT; clean audits | Leak check before each launch; six audits with 0 violations; isolation tests in PREFLIGHT.md. Caveat: r01 and r02 ran before the launcher cleared the environment |
 | P6 | Promoted builds come from clean runs on their tag | r03 at `spec-v1.1.0`, `clean: true` |
-| P7 | Every run is in the ledger, failures included | r00 to r00.5, r01 to r06, rescores, Windows checks, the promotion |
+| P7 | Every run is in the ledger, failures included | r00 to r00.5, r00.5.linux, r01 to r06, rescores, Windows checks, the promotion |
 | P8 | Every number here traces to the ledger or a run file | Runs table from `ledger.jsonl`; sizes from the tags; extraction from SOURCES.md and PROVENANCE.md |
 
 ## 10. What's next
 
 - Build Python again from `spec-v1.1.2`, under a new run budget.
-- Run the seven POSIX-only cases against the earlier implementation on Linux; so far it has only
-  been run on Windows.
 - Fix the earlier `mcp-tape`: the end-of-session hang and the large-payload stall are the two
   findings that matter in real use.
 - Try Go, the brief's first choice for a second language; it was not installed on the laptop when

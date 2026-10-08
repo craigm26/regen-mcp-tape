@@ -17,6 +17,7 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r00.4 | reference | spec-v1.1.1 | — | earlier TS implementation | finished | 46/67 (7 skipped, 4 n/a) | — | — | the 20 explained failures plus `fw-proto-member` (D-025) |
 | r05 | blind | spec-v1.1.1 | claude-sonnet-5-5 | py | finished | 77/77 (1 skipped, Linux); 71/71 on Windows | 39/39 Linux; 38/39 Windows | no | one own test expects LF on Windows (clarify, D-028); 10 turns, 4.5 min, $0.68 |
 | r00.5 | reference | spec-v1.1.2 | — | earlier TS implementation | finished | 46/67 (7 skipped, 4 n/a) | — | — | suite unchanged from 1.1.1; same 21 failures |
+| r00.5.linux | reference | spec-v1.1.2 | — | earlier TS implementation, Linux (WSL) | finished | 53/73 (1 skipped, 4 n/a) | — | — | first Linux run; 6 of the 7 POSIX-only cases pass; 20 failures, each mapped to a decision |
 | r06 | blind | spec-v1.1.2 | claude-sonnet-5-5 | py | finished | 75/77 (1 skipped, Linux); 69/71 on Windows | 33/33 Linux; 33/33 Windows | no | 2 silent divergences (wrong): already-forwarded client messages not logged when the child exits first; 13 turns, 4.1 min, $0.63 |
 
 Released: `impl/ts` from r03 at `spec-v1.1.0`. Python is not released: all six runs were used and
@@ -71,7 +72,7 @@ case failed because of the suite (class (a)): `exit-child-signal-SIGUSR1` had th
 send itself SIGUSR1, and a Node.js process starts its debugger on SIGUSR1 instead of dying. The
 case now uses SIGUSR2 (12 on Linux). With that fixed, both builds pass all 76 cases that run on
 Linux, including the signal cases, which no run had exercised before. The earlier
-implementation has still only been run on Windows, so its behavior on those 7 cases is unknown.
+implementation was first run on Linux after publication (r00.5.linux, below).
 
 ## r00.4: one more correction
 
@@ -80,6 +81,18 @@ The case added after r03 (`fw-proto-member`, D-025) sends a message with members
 for `{"__proto__":{"a":1},"constructor":"c","x":{"__proto__":[1,2]}}`: it rebuilds objects by
 assignment, and in JavaScript assigning to `__proto__` sets the prototype instead of adding a
 member. All four blind builds keep both members (rescores at `spec-v1.1.1`, Linux).
+
+## r00.5.linux: the earlier implementation on Linux
+
+Ran 2026-10-08 under WSL 2 (Ubuntu 24.04) on the laptop, with Node v22.20.0 for Linux and the
+same build of the earlier implementation, at `spec-v1.1.2`: 53/73, one Windows-only case
+skipped, four n/a. Of the seven POSIX-only cases, six pass: exits by SIGTERM, SIGKILL and
+SIGHUP, and SIGINT and SIGTERM forwarded to the child. The seventh, `exit-child-signal-SIGUSR2`,
+exits 128 instead of 140: its signal table has five names and gives 128 for any other signal,
+as D-013 says from reading the code. Two of the Windows failures do not occur on Linux:
+`pl-args-exact` (no shell starts the child on POSIX) and `label-derived-config-name` (POSIX
+paths have no backslashes). `exit-command-not-found` fails on both, here by an unhandled
+spawn error that ends with status 1. The other 18 failures are the same on both platforms.
 
 ## What each run taught
 

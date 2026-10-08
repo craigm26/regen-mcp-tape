@@ -12,11 +12,12 @@
 - Blind runs used: 6 of 6. Clean: r03 (ts, spec-v1.1.0). Python has no clean run (r04 and r05:
   own tests fail on Windows; r06: two suite failures).
 - Running processes: none
-- Open question for Craig: run the 7 POSIX-only cases against the reference under WSL?
+- Reference on Linux: r00.5.linux under WSL on the laptop (Craig said to proceed): 53/73; six of
+  the seven POSIX-only cases pass, SIGUSR2 gives 128 (D-013).
 - Released: impl/ts from r03 at spec-v1.1.0 (promotion in the ledger; purity ok; CI simulated on
   Linux: auditor self-test 24/24, own tests 29/29, suite 76/76). Python not released.
 - Done: README.md, WRITEUP.md, publish-gate scan (no local paths, secrets or private repo names in
   any ref; the AKIA and ghp_ strings are the spec's example values).
 - CI: run 37719985414 on main (9b4f37a): purity ok, auditor 24/24; ts on ubuntu 29/29 and 76/76,
   on windows 27/27 (2 skipped) and 70/70.
-- Open for Craig: the WSL question below; kit/posts/mcp-tape.md (draft post).
+- Open for Craig: kit/posts/mcp-tape.md (draft post).

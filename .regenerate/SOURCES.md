@@ -84,7 +84,7 @@ Paths are relative to the mcp-tape root at `793eb85` unless they say `format.md`
 | 5 | Batch arrays | Logged as one line, `raw` the array; redaction walks into it. | D-006 |
 | 6 | Redaction semantics | Regex rules touch string values only, never keys or numbers. `$..key` replaces the whole value of any type, objects included. The key-substring pass replaces strings, objects and arrays but keeps numbers, booleans and null. | D-007 |
 | 7 | Windows | Spawns through the shell on Windows: `.cmd` shims resolve, but arguments are re-split and empty ones dropped (r00 `pl-args-exact`). | D-017 |
-| 8 | Signal exit codes | `128 + table[sig]`, table of five; other signals give 128. End line records the same value. | D-013 |
+| 8 | Signal exit codes | `128 + table[sig]`, table of five; other signals give 128. End line records the same value. Confirmed by running on Linux: SIGUSR2 gives 128 (r00.5.linux). | D-013 |
 
 Additional findings (not in the brief's list):
 - After the child exits, the reference waits for the client to close standard input (D-003).
