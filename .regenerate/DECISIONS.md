@@ -285,3 +285,25 @@ extracted from, a TypeScript stdio proxy with the same trace format.
 - Why: No client or server depends on these.
 - Alternatives: Pin each one.
 
+## D-028: Windows line ends are part of the test requirement
+- Source: r05 (a check on Windows, outside the suite)
+- Context: After D-026, r05 skipped its POSIX-only tests on Windows as REQ-IF-001 asked, but one
+  of its tests still expected LF from a Python child that writes through `sys.stdout.write`. On
+  Windows, Python's text-mode standard output writes CRLF. D-026 described that trap, but only as
+  context for r04.
+- Decision: REQ-IF-001 states it: a test that compares bytes a child wrote has the child write
+  bytes, or accepts CRLF.
+- Why: A builder acts on requirements and reads context. Neither r04 nor r05 could run Windows.
+- Alternatives: Leave it in this file; run builder tests only on the build's own platform.
+
+## D-029: Two more edges are open (from r05)
+- Source: r05
+- Context: r05 translates `--redact` patterns into Python with ECMAScript meanings, except `\S`
+  inside a bracketed class, which keeps Python's ASCII meaning (C-4). It matches key substrings
+  case-insensitively for ASCII letters only, which is also what the earlier implementation's
+  regular expressions do (C-16).
+- Decision: OPEN-RD-001 names `\S` inside a bracketed class; OPEN-RD-004 is new.
+- Why: The differences need white space or letters outside ASCII in a user pattern or a key name.
+  Nothing depends on them.
+- Alternatives: Require a full ECMAScript translation; require Unicode case folding.
+

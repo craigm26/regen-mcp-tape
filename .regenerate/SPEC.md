@@ -1,7 +1,7 @@
 # tape: specification
 
 - Program: `tape`
-- Document version: 1.1.1
+- Document version: 1.1.2
 - Date: 2026-10-07
 
 `tape` is a transparent stdio proxy for Model Context Protocol (MCP) servers. A client starts
@@ -52,7 +52,9 @@ mapping to a command string. The suite picks the entry for its own platform, els
 - Build output, if any, goes in `bin/`.
 - The same REGEN.json MUST work on Windows and on Linux. CI runs `build`, `test` and the suite
   on both, so `test` MUST pass on both; tests of POSIX-only behavior (§ 3's signals) skip on
-  Windows.
+  Windows. On Windows, Python's text-mode standard output (`print`, `sys.stdout.write`) writes
+  CRLF for every LF, so a test that compares bytes a child wrote must have the child write bytes
+  (`sys.stdout.buffer.write`) or accept CRLF.
 
 ### 1.2 Invocation
 
@@ -452,13 +454,15 @@ them.
   file of the same name already exists; how `<stamp>` relates to `startedAt` beyond both being
   the start time to within normal startup delay.
 - **OPEN-RD-001.** `--redact` patterns that use syntax beyond REQ-RD-004's list (lookaround,
-  backreferences, Unicode property escapes, flags), patterns that can match the empty string,
-  and how such patterns behave.
+  backreferences, Unicode property escapes, flags, `\S` inside a bracketed class), patterns
+  that can match the empty string, and how such patterns behave.
 - **OPEN-RD-002.** Whether a `--redact` pattern (or step 4's repeat of patterns 1 to 4) is
   applied to text that an earlier step already replaced with `[REDACTED]` (for example,
   whether `--redact RED` changes `[REDACTED]`).
 - **OPEN-RD-003.** Redaction time on contrived inputs other than REQ-RD-006's large blob
   (for example a long run of repeated `eyJ`).
+- **OPEN-RD-004.** In REQ-RD-003, whether case-insensitive matching of keys folds non-ASCII
+  letters to ASCII ones (for example `ſ` to `s`, or the Kelvin sign to `k`).
 - **OPEN-PL-001.** Arguments with spaces, quotes or shell metacharacters passed to `.cmd` or
   `.bat` files on Windows.
 - **OPEN-PL-002.** On Windows, how a command name that already has a directory part or an
