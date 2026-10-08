@@ -1,0 +1,6 @@
+{
+  "lang": "py",
+  "build": "",
+  "test": {"win32": "py -3 -m unittest discover", "default": "python3 -m unittest discover"},
+  "driver": {"win32": "py -3 tape.py", "default": "python3 tape.py"}
+}
