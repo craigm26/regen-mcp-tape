@@ -40,7 +40,12 @@ if (tools !== 'Bash,Edit,Glob,Grep,Read,Write') initProblems.push(`tools ${tools
 if ((init.mcp_servers ?? []).length) initProblems.push(`mcp_servers ${JSON.stringify(init.mcp_servers)}`);
 if (init.permissionMode !== 'dontAsk') initProblems.push(`permissionMode ${init.permissionMode}`);
 if (!new RegExp(`^claude-${family}-`).test(init.model ?? '')) initProblems.push(`model ${init.model} is not a resolved ${family} id`);
-if (lines[0] !== init) initProblems.push('first line is not the init line');
+// The CLI may write bookkeeping lines (active_goal, autocompact_state, ui_invalidate) before
+// init. What matters: exactly one init line, and no assistant or tool event before it.
+const firstActor = lines.findIndex((l) => l.type === 'assistant' || l.type === 'user');
+if (!init.type) initProblems.push('no init line');
+else if (lines.filter((l) => l.type === 'system' && l.subtype === 'init').length !== 1) initProblems.push('more than one init line');
+else if (firstActor >= 0 && firstActor < lines.indexOf(init)) initProblems.push('an assistant or tool event precedes init');
 
 // ---------- walk tool calls
 const pathViolations = [], netViolations = [], codeHostHits = [], pipedCommands = [];
@@ -107,6 +112,8 @@ for (const l of lines) {
         bodies.push(code);
         for (const lit of code.matchAll(/(["'`])((?:\\.|(?!\1).)*)\1/g)) {
           const v = lit[2];
+          // A JS or C-style comment is not a path.
+          if (/^\/\//.test(v)) continue;
           // Escape sequences such as \n or \t are not path separators.
           const bare = v.replace(/\\[nrtbfv0'"`]/g, '');
           if (/[\\/]/.test(bare) || v === '..' || /^(~|\$HOME|%USERPROFILE%)/i.test(v)) {
@@ -141,7 +148,8 @@ for (const h of codeHostHits) netViolations.push({ ...h, rule: 'code-host addres
 
 // ---------- (c) denied calls
 const result = [...lines].reverse().find((l) => l.type === 'result') ?? null;
-const denied = result?.permission_denials?.length ?? 0;
+// A run with no result line (killed or orphaned) still has its permission_denied events.
+const denied = result ? (result.permission_denials?.length ?? 0) : lines.filter((l) => l.type === 'system' && l.subtype === 'permission_denied').length;
 
 const report = {
   transcript: transcriptPath,
