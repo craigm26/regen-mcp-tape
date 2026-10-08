@@ -59,6 +59,15 @@ export function checkSpecExamples() {
     const input = m[1] ?? m[3], want = m[2] ?? m[3];
     if (O.redact(input) !== want) bad.push(`word-rule example ${input}: spec ${want}, oracle ${O.redact(input)}`);
   }
+  {
+    const p = sec("Examples with `--redact '^id'`", '**REQ-RD-006.**');
+    const user = { defaults: false, user: ['^id', 'end$'] };
+    for (const m of p.matchAll(/`([^`]+)`( followed by LF)? (?:becomes `([^`]+)`|is unchanged)/g)) {
+      n++;
+      const input = m[1] + (m[2] ? '\n' : ''), want = m[3] ?? input;
+      if (O.redact(input, user) !== want) bad.push(`--redact example ${JSON.stringify(input)}: spec ${JSON.stringify(want)}, oracle ${JSON.stringify(O.redact(input, user))}`);
+    }
+  }
   O.selfTestWordRules(3000);
   if (n < 22) bad.push(`only ${n} examples found; the example patterns no longer match SPEC.md`);
   if (bad.length) throw new Error('SPEC.md examples disagree with the oracle:\n  ' + bad.join('\n  '));
@@ -337,6 +346,9 @@ export function buildCases() {
       server: { stdout: [{ text: j({ jsonrpc: '2.0', method: 'notify', params: { password: 'out-secret', note: 'AKIAIOSFODNN7EXAMPLE' } }) + '\n' }] },
     });
     r('rd-user-patterns', ['REQ-RD-004', 'REQ-CLI-001'], [{ jsonrpc: '2.0', id: 1, method: 'x', params: { a: 'MYCO-1234 and MYCO-99', b: 'abcabc' } }], { tapeArgs: ['--redact', 'MYCO-[0-9]+', '--redact', '(abc){2}'] });
+    r('rd-user-pattern-meanings', ['REQ-RD-004'], [{ jsonrpc: '2.0', id: 1, method: 'x', params: {
+      a: 'id 7', b: 'my id', c: 'the end', d: 'the end\n', e: 'line one\nid two', f: 'a\rb and a-b', g: 'ID 9' } }],
+    { tapeArgs: ['--no-redact-defaults', '--redact', '^id', '--redact', 'end$', '--redact', 'a.b'] });
     r('rd-no-defaults', ['REQ-RD-004', 'REQ-CLI-001'], [{ jsonrpc: '2.0', id: 1, method: 'x', params: { password: 'p', a: 'AKIAIOSFODNN7EXAMPLE', b: 'CUSTOM-1' } }], { tapeArgs: ['--no-redact-defaults', '--redact', 'CUSTOM-[0-9]+'] });
     r('rd-forwarded-unchanged', ['REQ-FW-001', 'REQ-RD-001'], [{ jsonrpc: '2.0', id: 1, method: 'x', params: { password: 'hunter2', s: 'AKIAIOSFODNN7EXAMPLE' } }]);
   }

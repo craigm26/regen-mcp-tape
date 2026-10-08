@@ -1,7 +1,7 @@
 # tape: specification
 
 - Program: `tape`
-- Document version: 1.0.2
+- Document version: 1.1.0
 - Date: 2026-10-07
 
 `tape` is a transparent stdio proxy for Model Context Protocol (MCP) servers. A client starts
@@ -346,16 +346,23 @@ Examples: `{"db_password":"x"}` ⟶ `{"db_password":"[REDACTED]"}`;
 **REQ-RD-004.** Every string value at any depth then has, in order: patterns 1 to 4 of
 REQ-RD-002 again (only when the defaults are on), then each `--redact` pattern, in the order
 given on the command line, replaced (every non-overlapping match) by `[REDACTED]`.
-`--redact` patterns are ECMAScript regular expressions; the suite uses only patterns built
-from literal characters, character classes, `{m,n}` and `+`/`*`/`?` quantifiers, anchors,
-groups and alternation (OPEN-RD-001).
+`--redact` patterns are ECMAScript regular expressions, applied with the global flag and no
+other flag. So `^` matches only at the start of the whole string value and `$` only at its
+very end (not at a line break, and not before a final LF); `.`, `\b` and `\s` have the
+meanings given in REQ-RD-002; matching is case-sensitive. The suite uses only patterns built
+from literal characters, character classes, `{m,n}` and `+`/`*`/`?` quantifiers, the anchors
+`^` and `$`, groups and alternation (OPEN-RD-001).
 
-**REQ-RD-006.** Redaction MUST take time roughly proportional to the size of the message.
-In particular, a message line of 2 MB whose payload is one string with no white space (for
-example base64 data) MUST be logged, and the traffic after it forwarded, within the suite's
-time limit (§ 9). A direct backtracking evaluation of patterns 10 and 11 takes time
-proportional to the square of the word length and does not meet this; use the word-based
-descriptions in REQ-RD-002.
+Examples with `--redact '^id'` and `--redact 'end$'`: `id 7` becomes `[REDACTED] 7`;
+`my id` is unchanged; `the end` becomes `the [REDACTED]`; `the end` followed by LF is
+unchanged.
+
+**REQ-RD-006.** A message line of 2 MB whose payload is one string of base64 characters
+(`A-Z a-z 0-9 + / =`, no white space) MUST be logged, and the traffic after it forwarded,
+within the suite's time limit (§ 9). A direct backtracking evaluation of patterns 10 and 11
+takes time proportional to the square of the word length and does not meet this; use the
+word-based descriptions in REQ-RD-002. Worst-case time on other contrived inputs is open
+(OPEN-RD-003).
 
 **REQ-RD-005.** Redaction applies to `meta.command` too: each argument string goes through the
 active string rules (steps 2 and 4 with the defaults on; only the `--redact` patterns with
@@ -430,7 +437,8 @@ them.
 - **OPEN-TR-002.** How message lines from the two directions interleave, and whether `t`
   values are monotonic across directions.
 - **OPEN-TR-003.** In `raw`: member order, whitespace, how numbers are written (as long as the
-  value survives), integers beyond 2^53, and duplicate member names.
+  value survives), integers beyond 2^53, `-0`, numbers outside the binary64 range (such as
+  `1e999`), and duplicate member names.
 - **OPEN-TR-004.** Lines that are not valid UTF-8; lines that begin with a byte-order mark;
   lines that are blank under some other definition of white space (for example U+00A0); and
   messages that cannot be redacted or written because of an internal limit (for example
@@ -441,6 +449,11 @@ them.
 - **OPEN-RD-001.** `--redact` patterns that use syntax beyond REQ-RD-004's list (lookaround,
   backreferences, Unicode property escapes, flags), patterns that can match the empty string,
   and how such patterns behave.
+- **OPEN-RD-002.** Whether a `--redact` pattern (or step 4's repeat of patterns 1 to 4) is
+  applied to text that an earlier step already replaced with `[REDACTED]` (for example,
+  whether `--redact RED` changes `[REDACTED]`).
+- **OPEN-RD-003.** Redaction time on contrived inputs other than REQ-RD-006's large blob
+  (for example a long run of repeated `eyJ`).
 - **OPEN-PL-001.** Arguments with spaces, quotes or shell metacharacters passed to `.cmd` or
   `.bat` files on Windows.
 - **OPEN-PL-002.** On Windows, how a command name that already has a directory part or an

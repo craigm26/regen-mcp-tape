@@ -58,9 +58,9 @@ Paths are relative to the mcp-tape root at `793eb85` unless they say `format.md`
 | REQ-RD-001 | `default-redact.json:3-16` (path rules `$..key`); `src/redact.ts:58-85` (replace any value type); `src/jsonpath.ts` |
 | REQ-RD-002 | `default-redact.json:17-27`; `src/redact-config.ts:75-91`; meanings D-008; pattern 9 restated D-009; patterns 10-11 restated D-010 |
 | REQ-RD-003 | `src/redact.ts:5-16, 99-108` (key substrings; strings/objects/arrays replaced, other types kept) |
-| REQ-RD-004 | `src/redact.ts:20-25, 35-43, 87-95` (four patterns plus `--redact`, flag `g`); order `src/proxy.ts:172-173` |
+| REQ-RD-004 | `src/redact.ts:20-25, 35-43, 87-95` (four patterns plus `--redact`, flag `g`); order `src/proxy.ts:172-173`; flags and anchors stated D-023 |
 | REQ-RD-005 | `format.md` "Redaction": producers should redact command-line arguments; reference does not (`src/writer.ts:46`); D-011 |
-| REQ-RD-006 | Measured quadratic cost of `default-redact.json:26-27` (below); D-010 |
+| REQ-RD-006 | Measured quadratic cost of `default-redact.json:26-27` (below); D-010; narrowed to the tested case D-024 |
 | REQ-PL-001, 002 | `src/proxy.ts:76-83` (`shell: process.platform === 'win32'`); D-017 |
 | REQ-BU-001…003 | `kit/briefs/mcp-tape.md` § Budgets |
 

@@ -214,3 +214,39 @@ extracted from, a TypeScript stdio proxy with the same trace format.
   OPEN-RD-001. REQ-LB-001 gains an example for a redacted argument (C-9).
 - Why: Nothing a normal client or server does depends on these.
 - Alternatives: Pin each one.
+
+## D-023: `--redact` flags and anchors are pinned
+- Source: r02
+- Context: REQ-RD-004 listed the anchors `^` and `$` among the syntax the suite uses in
+  `--redact` patterns but never said which flags apply, so whether they anchor to the whole
+  string or to each line was unstated. In Python, `$` also matches just before a final LF. The
+  r02 builder chose the global flag alone and asked whether the spec should say so (C-5). The
+  earlier implementation compiles each pattern with the global flag alone (`src/redact.ts:40`).
+- Decision: Patterns are applied with the global flag and no other. `^` and `$` anchor to the
+  whole string value, `$` does not match before a final LF, `.`, `\b` and `\s` keep the
+  meanings of REQ-RD-002, and matching is case-sensitive. REQ-RD-004 gains examples and the
+  suite a case (`rd-user-pattern-meanings`).
+- Why: The same pattern would otherwise redact different text in different languages, and
+  anchors were already in the tested syntax.
+- Alternatives: Multiline mode; drop anchors from the tested syntax and leave them open.
+
+## D-024: Redacting already-replaced text, contrived worst cases, and odd numbers are open
+- Source: r02
+- Context: Three places where the text said more, or less, than anything depends on.
+  1. Step 4 runs over every string value, so a `--redact` pattern can match inside a
+     `[REDACTED]` written by an earlier step (r02: `--redact RED` gives `[[REDACTED]ACTED]`).
+     The earlier implementation skips values replaced by the key-substring step but not values
+     replaced by steps 1 and 2 (C-6).
+  2. REQ-RD-006's first sentence promised time roughly proportional to message size for every
+     input. The suite tests only the large-blob case, and the r02 builder noted that patterns
+     4 and 9, run by a backtracking engine, are still quadratic on contrived input such as a
+     long run of `eyJ` (C-14).
+  3. A standard JSON reader turns `-0` into `0` and `1e999` into infinity, which a standard
+     writer turns into `null` (C-9).
+- Decision: OPEN-RD-002 (whether step 4 sees already-replaced text) and OPEN-RD-003 (time on
+  contrived input). REQ-RD-006 now pins only the large-blob case it tests. OPEN-TR-003 now
+  names `-0` and numbers outside the binary64 range.
+- Why: No client, server or trace reader depends on any of them.
+- Alternatives: Pin the earlier implementation's partial skipping; require linear time for
+  every pattern (which rules out a language's own regular-expression engine for patterns 4
+  and 9); require exact number text in `raw`.
