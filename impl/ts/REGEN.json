@@ -1,0 +1,6 @@
+{
+  "lang": "ts",
+  "build": "",
+  "test": "node --test",
+  "driver": "node tape.ts"
+}
