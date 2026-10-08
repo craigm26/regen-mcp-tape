@@ -14,6 +14,7 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r00.3 | reference | spec-v1.1.0 | — | earlier TS implementation | finished | 46/66 (7 skipped, 4 n/a) | — | — | same 20 failures; the new `--redact` case passes |
 | r03 | blind | spec-v1.1.0 | claude-sonnet-5-5 | ts | finished | 76/76 (1 skipped, Linux); 70/70 on Windows | 29/29 | **yes** | first clean run; first on the cloud host; 18 turns, 4.1 min, $0.63 |
 | r04 | blind | spec-v1.1.0 | claude-sonnet-5-5 | py | finished | 76/76 (1 skipped, Linux); 70/70 on Windows | 19/19 Linux; 16/19 Windows | no | its own tests fail on Windows (clarify, D-026); 19 turns, 5.8 min, $0.65 |
+| r00.4 | reference | spec-v1.1.1 | — | earlier TS implementation | finished | 46/67 (7 skipped, 4 n/a) | — | — | the 20 explained failures plus `fw-proto-member` (D-025) |
 
 ## r00: the suite against the earlier implementation
 
@@ -61,6 +62,14 @@ send itself SIGUSR1, and a Node.js process starts its debugger on SIGUSR1 instea
 case now uses SIGUSR2 (12 on Linux). With that fixed, both builds pass all 76 cases that run on
 Linux, including the signal cases, which no run had exercised before. The earlier
 implementation has still only been run on Windows, so its behavior on those 7 cases is unknown.
+
+## r00.4: one more correction
+
+The case added after r03 (`fw-proto-member`, D-025) sends a message with members named
+`__proto__` and `constructor`. The earlier implementation logged `{"constructor":"c","x":{}}`
+for `{"__proto__":{"a":1},"constructor":"c","x":{"__proto__":[1,2]}}`: it rebuilds objects by
+assignment, and in JavaScript assigning to `__proto__` sets the prototype instead of adding a
+member. All four blind builds keep both members (rescores at `spec-v1.1.1`, Linux).
 
 ## What each run taught
 
