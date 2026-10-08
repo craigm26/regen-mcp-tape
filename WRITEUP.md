@@ -154,13 +154,15 @@ laptop, triage and these documents) took much longer, and their cost is not in t
 | P4 | The suite ran against the reference first; every failure explained | r00 to r00.5 on Windows (20, then 21 failures) and r00.5.linux (20), each mapped to a decision |
 | P5 | Builders saw only SPEC, DECISIONS and PROMPT; clean audits | Leak check before each launch; six audits with 0 violations; isolation tests in PREFLIGHT.md. Caveat: r01 and r02 ran before the launcher cleared the environment |
 | P6 | Promoted builds come from clean runs on their tag | r03 at `spec-v1.1.0`, `clean: true` |
-| P7 | Every run is in the ledger, failures included | r00 to r00.5, r00.5.linux, r01 to r06, rescores, Windows checks, the promotion |
+| P7 | Every run is in the ledger, failures included | r00 to r00.5, r00.5.linux, r01 to r06, rescores, Windows checks, the promotion, and the upstream checks `upstream.1` and `upstream.1.linux` |
 | P8 | Every number here traces to the ledger or a run file | Runs table from `ledger.jsonl`; sizes from the tags; extraction from SOURCES.md and PROVENANCE.md |
 
 ## 10. What's next
 
 - Build Python again from `spec-v1.1.2`, under a new run budget.
-- Fix the earlier `mcp-tape`: the end-of-session hang and the large-payload stall are the two
-  findings that matter in real use.
+- Fixes for the earlier `mcp-tape`, the end-of-session hang and the large-payload stall among
+  them, are proposed in [craigm26/mcp-tape#2](https://github.com/craigm26/mcp-tape/pull/2). It is
+  open, not merged. With them it passes this suite: 67/67 on Windows and 73/73 on Linux (ledger
+  `upstream.1`, `upstream.1.linux`).
 - Try Go, the brief's first choice for a second language; it was not installed on the laptop when
   the project began.

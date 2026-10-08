@@ -20,4 +20,7 @@
   any ref; the AKIA and ghp_ strings are the spec's example values).
 - CI: run 37719985414 on main (9b4f37a): purity ok, auditor 24/24; ts on ubuntu 29/29 and 76/76,
   on windows 27/27 (2 skipped) and 70/70.
+- Upstream: the fixes went to the earlier project on 2026-10-08 (UTC) as craigm26/mcp-tape#2
+  (open, not merged). At b07b9f3 it passes this suite 67/67 on Windows (laptop) and 73/73 on
+  Linux (ledger upstream.1, upstream.1.linux; PROVENANCE).
 - Open for Craig: kit/posts/mcp-tape.md (draft post).

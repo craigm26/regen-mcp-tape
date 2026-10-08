@@ -19,6 +19,8 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 | r00.5 | reference | spec-v1.1.2 | — | earlier TS implementation | finished | 46/67 (7 skipped, 4 n/a) | — | — | suite unchanged from 1.1.1; same 21 failures |
 | r00.5.linux | reference | spec-v1.1.2 | — | earlier TS implementation, Linux (WSL) | finished | 53/73 (1 skipped, 4 n/a) | — | — | first Linux run; 6 of the 7 POSIX-only cases pass; 20 failures, each mapped to a decision |
 | r06 | blind | spec-v1.1.2 | claude-sonnet-5-5 | py | finished | 75/77 (1 skipped, Linux); 69/71 on Windows | 33/33 Linux; 33/33 Windows | no | 2 silent divergences (wrong): already-forwarded client messages not logged when the child exits first; 13 turns, 4.1 min, $0.63 |
+| upstream.1 | upstream | spec-v1.1.2 | — | earlier TS implementation with the fixes in craigm26/mcp-tape#2, Windows | finished | 67/67 (7 skipped, 4 n/a) | its `npm test`: 231 pass, 1 skipped | — | all 21 failures of r00.5 pass |
+| upstream.1.linux | upstream | spec-v1.1.2 | — | the same, Linux | finished | 73/73 (1 skipped, 4 n/a) | its `npm test`: 231 pass, 1 skipped | — | all 20 failures of r00.5.linux pass |
 
 Released: `impl/ts` from r03 at `spec-v1.1.0`. Python is not released: all six runs were used and
 none of the three Python builds (r04 to r06) was clean. `main` carries `spec-v1.1.2`, with REQ-IF-001
@@ -93,6 +95,17 @@ as D-013 says from reading the code. Two of the Windows failures do not occur on
 `pl-args-exact` (no shell starts the child on POSIX) and `label-derived-config-name` (POSIX
 paths have no backslashes). `exit-command-not-found` fails on both, here by an unhandled
 spawn error that ends with status 1. The other 18 failures are the same on both platforms.
+
+## upstream.1: the fixes proposed upstream
+
+On 2026-10-08 (UTC) fixes for every failure class above went to the earlier project as
+[craigm26/mcp-tape#2](https://github.com/craigm26/mcp-tape/pull/2), open and not merged when this
+was written. The hang (D-002, D-003) and the quadratic redaction (D-010) are the two that matter
+in real use. Run through this suite at `b07b9f3` with the committed reference adapter, it passes
+67/67 on the laptop's Windows 11 (seven POSIX-only cases skipped, four n/a), where r00.5 had 21
+failures, and 73/73 on Linux in the cloud container (the Windows-only case skipped, four n/a),
+where r00.5.linux had 20. Its own `npm test` passes 231 tests on both, with one platform-only
+test skipped. Ledger: `upstream.1`, `upstream.1.linux`.
 
 ## What each run taught
 
