@@ -113,6 +113,8 @@ export function buildCases() {
   session('fw-crlf-in', ['REQ-FW-001', 'REQ-TR-007'], req(1, 'ping') + '\r\n' + req(2, 'ping') + '\r\n');
   session('fw-scalars-and-batch', ['REQ-TR-007'],
     '42\n"just a string"\nnull\ntrue\n[' + req(5, 'a') + ',' + req(6, 'b', { token: 'x' }) + ']\n');
+  // A member named __proto__ or constructor is an ordinary member (D-025; r03's C-8).
+  session('fw-proto-member', ['REQ-TR-010'], '{"jsonrpc":"2.0","method":"m","params":{"__proto__":{"a":1},"constructor":"c","x":{"__proto__":[1,2]}}}\n');
   session('fw-numbers-survive', ['REQ-TR-010'], j({ jsonrpc: '2.0', method: 'n' }).slice(0, -1) + ',"params":{"a":1.0,"b":1e2,"c":-0.5,"d":12345678901234567890,"e":2.5E-3}}\n');
   session('fw-order-within-direction', ['REQ-TR-009'], Array.from({ length: 40 }, (_, i) => req(i + 1, `m${i}`) + '\n').join(''));
   session('fw-server-output-plan', ['REQ-FW-001', 'REQ-TR-007'], req(1, 'ping') + '\n', {

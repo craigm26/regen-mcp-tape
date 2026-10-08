@@ -1,7 +1,7 @@
 # tape: specification
 
 - Program: `tape`
-- Document version: 1.1.0
+- Document version: 1.1.1
 - Date: 2026-10-07
 
 `tape` is a transparent stdio proxy for Model Context Protocol (MCP) servers. A client starts
@@ -50,7 +50,9 @@ mapping to a command string. The suite picks the entry for its own platform, els
   absolute path. So write driver words as paths relative to the implementation folder; the
   implementation does not need to do anything to resolve them.
 - Build output, if any, goes in `bin/`.
-- The same REGEN.json MUST work on Windows and on Linux.
+- The same REGEN.json MUST work on Windows and on Linux. CI runs `build`, `test` and the suite
+  on both, so `test` MUST pass on both; tests of POSIX-only behavior (§ 3's signals) skip on
+  Windows.
 
 ### 1.2 Invocation
 
@@ -432,10 +434,13 @@ them.
   waits when the child has exited but a process it started still holds the child's output
   pipes open.
 - **OPEN-EX-001.** On Windows, how a forced termination of `tape` or the child is reported.
+- **OPEN-EX-002.** A SIGINT or SIGTERM that reaches `tape` before the child has started, and
+  the exit status for a signal the runtime has no name for.
 - **OPEN-TR-001.** Extra members in trace lines (for example a producer version in the meta
   line).
-- **OPEN-TR-002.** How message lines from the two directions interleave, and whether `t`
-  values are monotonic across directions.
+- **OPEN-TR-002.** How message lines from the two directions interleave, whether `t` values
+  are monotonic across directions, and which instant `t` records (when the line was read or
+  when it was written).
 - **OPEN-TR-003.** In `raw`: member order, whitespace, how numbers are written (as long as the
   value survives), integers beyond 2^53, `-0`, numbers outside the binary64 range (such as
   `1e999`), and duplicate member names.
@@ -462,3 +467,5 @@ them.
 - **OPEN-LB-001.** Non-ASCII characters in a derived label or in the file-name part: each
   becomes `-`, but whether a character outside the Basic Multilingual Plane becomes one `-` or
   two, and whether the 32- and 64-character limits count code points or UTF-16 units, is open.
+- **OPEN-LB-002.** In REQ-LB-001 step 2, whether characters that some languages count as white
+  space and ECMAScript does not (for example U+0085, or U+001C to U+001F) count as white space.

@@ -250,3 +250,38 @@ extracted from, a TypeScript stdio proxy with the same trace format.
 - Alternatives: Pin the earlier implementation's partial skipping; require linear time for
   every pattern (which rules out a language's own regular-expression engine for patterns 4
   and 9); require exact number text in `raw`.
+
+## D-025: A member named `__proto__` is an ordinary member
+- Source: r03
+- Context: r03 rebuilt objects with `Object.fromEntries` so that a message member named
+  `__proto__` stays a member (C-8). The earlier implementation rebuilds objects by assignment
+  (`obj[k] = ...`), and in JavaScript assigning to `__proto__` sets the object's prototype
+  instead, so such a member drops out of the trace. No case covered it.
+- Decision: No change to the text: REQ-TR-010 already keeps every member. The suite gains a case
+  (`fw-proto-member`) with `__proto__` and `constructor` members.
+- Why: A trace that silently drops members is wrong for any client that sends them.
+- Alternatives: Leave it untested.
+
+## D-026: The builder's own tests run on both platforms
+- Source: r04 (a check on Windows, outside the suite)
+- Context: REQ-IF-001 said the same REGEN.json must work on Windows and on Linux, but not that
+  the builder's own `test` command runs on both. r04 was built and tested on Linux. On Windows
+  its program passed every suite case, and 3 of its 19 tests failed: two expected LF line ends
+  from a Python child, whose `print` writes CRLF on Windows, and one used SIGUSR1, which Windows
+  does not have.
+- Decision: REQ-IF-001 now says CI runs `build`, `test` and the suite on both platforms, so
+  `test` must pass on both, and tests of POSIX-only behavior skip on Windows.
+- Why: CI runs the tests on both, as the brief requires, and a builder working on one platform
+  cannot see the other.
+- Alternatives: Run the builder's tests only on the platform it built on.
+
+## D-027: More edges are open (from r03 and r04)
+- Source: r03, r04
+- Context: r03 installs its signal handlers after starting the child, and gives 128 for a signal
+  its runtime cannot name (C-11). r04 takes white space in REQ-LB-001 to be ECMAScript's, where
+  Python's `str.isspace` also counts U+0085 and U+001C to U+001F (C-9), and takes `t` when a line is
+  read rather than when it is written (C-15).
+- Decision: OPEN-EX-002 and OPEN-LB-002, and a wider OPEN-TR-002.
+- Why: No client or server depends on these.
+- Alternatives: Pin each one.
+
