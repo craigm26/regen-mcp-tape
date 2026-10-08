@@ -21,7 +21,8 @@ How every version of this program was made. Machine-readable record: `ledger.jso
 
 Released: `impl/ts` from r03 at `spec-v1.1.0`. Python is not released: all six runs were used and
 none of the three Python builds (r04 to r06) was clean. `main` carries `spec-v1.1.2`, with REQ-IF-001
-on builder tests across platforms, five more open items and a `__proto__` case; the released tree
+on builder tests across platforms, three more open items and two wider ones, and a `__proto__`
+case; the released tree
 passes its suite (77/77 on Linux, rescore at `spec-v1.1.1`, whose suite is the same).
 
 ## r00: the suite against the earlier implementation
@@ -46,7 +47,8 @@ All 20 failures are behavior this spec corrects (class (c)):
 | D-015 | `cli-bad-redact-regex` | crashes with status 1 after creating the output directory |
 | D-017 | `pl-args-exact` | on Windows, `a b` arrives as two arguments, quotes vanish, `%PATH%` is expanded |
 
-Everything else passed, including all 13 redaction cases: the four-step restatement in SPEC
+Everything else passed, including all 10 cases on the redaction rules (the two large-blob
+redaction cases failed on time, D-010): the four-step restatement in SPEC
 § 6 reproduces the earlier implementation's two-stage redaction exactly, including its
 quirks, and the `.cmd` shim case.
 
@@ -81,8 +83,9 @@ member. All four blind builds keep both members (rescores at `spec-v1.1.1`, Linu
 
 ## What each run taught
 
-- **r00.** Every one of the brief's eight hypotheses held. The two that matter most for real
-  use were found by running, not reading: the earlier implementation hangs at the end of a
+- **r00.** Of the brief's eight checks, the six it stated as suspicions were confirmed and the
+  two it asked as questions were answered. The two that matter most for real
+  use showed up when it ran: the earlier implementation hangs at the end of a
   normal MCP session, and it stalls on large base64 payloads. The redaction rules, the part
   that looked hardest to restate, came out identical.
 - **r01.** The first blind TypeScript build passed every case on Windows, including all the ones the earlier implementation hung or stalled on. Its one real finding was wording: REQ-IF-001 asked the builder to make a relative path resolve, which only the suite can do. The POSIX signal half of the spec is still unexercised.

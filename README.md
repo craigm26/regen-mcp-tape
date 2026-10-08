@@ -5,7 +5,8 @@ agents from a spec. The spec is the asset; the code is disposable.
 
 The durable asset is [`.regenerate/`](.regenerate/): the specification, the decisions behind it,
 a suite that judges any implementation from the outside, and a ledger of every build. The code in
-[`impl/`](impl/) is output: each tree was written by an agent that was shown only the spec, and
+[`impl/`](impl/) is output: each tree was written by an agent that was shown only the spec, its decisions and a
+prompt, and
 CI checks that it is byte for byte what that logged run produced. The story is in
 [WRITEUP.md](WRITEUP.md).
 
@@ -27,9 +28,9 @@ node impl/ts/tape.ts --label files -- npx -y some-server
 - **Trace file:** `DIR/<UTC start time>-<label>.jsonl`. A `meta` line (start time, label, and the
   command with secrets redacted), one `{"t", "dir", "raw"}` line per message (`in` is client to
   server, `out` is server to client), and an `end` line with `exitCode` and `durationMs`.
-- **Redaction:** fixed key names and key substrings, eleven value patterns (cloud, GitHub, Slack
-  and Stripe keys, JWTs, bearer and `Authorization` headers, URL passwords, `.env` and SSH key
-  paths), and any `--redact` patterns. Each match becomes `[REDACTED]`.
+- **Redaction:** fixed key names and key substrings, eleven value patterns (AWS, `sk-`, GitHub,
+  Slack and Stripe keys, JWTs, bearer and `Authorization` headers, URL passwords, `.env` and SSH
+  key paths), and any `--redact` patterns. Each match becomes `[REDACTED]`.
 - **Shutdown:** when the client closes its input, `tape` closes the server's input, as MCP's
   stdio shutdown expects. When the server exits, `tape` finishes the trace and exits with the
   server's status (128 + N for signal N on POSIX), even if the client has not closed its input.
@@ -50,7 +51,8 @@ messages it has already forwarded when the server exits first. Their code stays 
 `regen/r04` to `regen/r06`, and the reasons are in `.regenerate/runs/`.
 
 `main` carries `spec-v1.1.2`: builder tests must pass on both platforms (with the Windows line-end
-fact that tripped two builds), five more open items, and a case for message members named
+fact that tripped two builds), three more open items and two wider ones, and a case for message
+members named
 `__proto__`, which the earlier implementation drops. No clean build has been made from it; the
 released TypeScript tree passes its suite (77/77 on Linux).
 
