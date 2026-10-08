@@ -44,6 +44,8 @@ proxy path of my earlier `mcp-tape` package, not that package.
 |---|---|---|---|---|---|---|
 | TypeScript (Node 22.18+, no dependencies) | `impl/ts` | r03 | `spec-v1.1.0` | 76/76 on Linux, 70/70 on Windows | 29 | 241 |
 
+CI runs `impl/ts` on ubuntu-latest and windows-latest: its own tests and the suite at its tag.
+
 Python is not released. All six allowed builds were used, and none of the three Python builds
 (r04 to r06) was clean. The first two passed every suite case on Linux and on Windows, but their
 own tests, written on Linux, failed on Windows. The third fixed that and instead loses client

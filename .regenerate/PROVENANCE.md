@@ -94,3 +94,15 @@ member. All four blind builds keep both members (rescores at `spec-v1.1.1`, Linu
 - **r04.** The Python build passed every suite case on Linux and Windows, and translated `--redact` patterns to ECMAScript meanings because r02's finding had become a sentence in the spec. Its own tests, written on Linux, failed on Windows: they expected LF from a Python child that writes CRLF there, and sent SIGUSR1, which Windows lacks. The program was right and the tests did not travel, so REQ-IF-001 now says the tests run on both platforms. The run also left a hung background test that kept the builder's CLI from exiting after its result line; the audit now handles the extra turn that followed.
 - **r05.** The fastest build (10 turns), and it followed the new sentence in REQ-IF-001 exactly: its POSIX-only tests skip on Windows. It still expected LF from a Python child, whose text-mode output writes CRLF on Windows. That fact had been in D-026 only as context. A builder acts on requirements and reads context; the fact is now in the requirement.
 - **r06.** The last run. Its own tests passed on Windows, so the line-end sentence from r05 worked. Its program failed two cases that every earlier build passed: when the server exits first, it leaves without logging client messages it has already forwarded, a race between forwarding and logging at shutdown. With six runs used, Python is not released.
+
+## Publication
+
+Published 2026-10-08 (UTC) at <https://github.com/craigm26/regen-mcp-tape>. The repository was
+created private, every branch and tag was pushed, and it was made public after CI run 37719985414
+passed on `main` at `9b4f37a` (Node v22.23.3): the purity check found `impl/ts` equal to r03's
+tree at `spec-v1.1.0`, and the auditor self-test passed 24/24. On ubuntu-latest `impl/ts` passed
+its own tests 29/29 and the suite 76/76; on windows-latest, its own tests 27/27 (two POSIX-only
+tests skipped) and the suite 70/70. That Windows run settles r03's one laptop failure: on a clean
+machine its standard-error test passes. The first push did not start a workflow run, so the run
+was started by hand (`workflow_dispatch`).
+
